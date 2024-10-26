@@ -235,19 +235,18 @@
         }
 
         function deleteImage(image) {
-            $.ajax({
-                url: '/delete',
-                type: 'POST',
-                data: { filename: image },
-                success: function () {
-                    Swal.fire('Eliminado!', 'Tu imagen ha sido eliminada.', 'success');
-                    location.reload(); // Recargar la página
-                },
-                error: function (xhr) {
-                    Swal.fire('Error!', 'No se pudo eliminar la imagen.', 'error');
-                }
-            });
+    $.ajax({
+        url: '/delete/' + image, // URL correcta para la solicitud
+        type: 'POST', // Método POST
+        success: function () {
+            Swal.fire('Eliminado!', 'Tu imagen ha sido eliminada.', 'success');
+            location.reload(); // Recargar la página para actualizar la lista de imágenes
+        },
+        error: function (xhr) {
+            Swal.fire('Error!', 'No se pudo eliminar la imagen.', 'error');
         }
+    });
+}
 
         function previewImage(event) {
             const imageFile = event.target.files[0];
