@@ -8,96 +8,101 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Paleta de colores en blanco y negro */
+        /* Paleta de colores */
         body {
             font-family: 'Orbitron', sans-serif;
-            background-color: #121212; /* Fondo oscuro */
-            color: #ffffff; /* Texto blanco */
+            background-color: #121212;
+            color: #e0e0e0;
         }
 
-        /* Título sin animación */
         h1 {
-            color: #ffffff;
-            text-transform: uppercase;
-            font-size: 24px;
+            color: #f8f8f8;
+            font-size: 32px;
+            letter-spacing: 2px;
+            animation: glow 1s ease-in-out infinite alternate;
         }
 
-        /* Fondo de la sección de carga de archivos */
+        /* Efecto de resplandor */
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #f8f8f8, 0 0 10px #f8f8f8, 0 0 20px #ff007f, 0 0 30px #ff007f;
+            }
+            to {
+                text-shadow: 0 0 10px #f8f8f8, 0 0 20px #ff007f, 0 0 30px #ff007f, 0 0 40px #ff007f;
+            }
+        }
+
         .file-upload {
-            background-color: #1e1e1e; /* Fondo gris oscuro */
-            border: 2px dashed #ffffff; /* Borde blanco */
+            background-color: #1e1e1e;
+            border: 2px dashed #f8f8f8;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            transition: background-color 0.3s ease;
         }
 
-        /* Imágenes circulares */
+        .file-upload:hover {
+            background-color: #292929;
+        }
+
         .uploaded-image {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background-color: #2e2e2e; /* Fondo gris más claro */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #ff007f;
         }
 
-        /* Fondo gris para la sección de imágenes cargadas */
-        .custom-purple-bg {
-            background-color: #1e1e1e; /* Color gris oscuro */
-        }
-
-        /* Animación hover en imágenes */
         .uploaded-image:hover {
             transform: scale(1.1);
-            background-color: #3e3e3e; /* Fondo gris más claro al pasar el mouse */
-            box-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; /* Brillo blanco */
+            box-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
         }
 
-        /* Botón con cambio de tono en hover */
         .btn-analyze {
-            background-color: #ffffff; /* Fondo blanco */
-            color: #000000; /* Texto negro */
+            background-color: #ff007f;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .btn-analyze:hover {
-            background-color: #e0e0e0; /* Fondo gris claro */
+            background-color: #ff4da6;
             transform: scale(1.05);
         }
 
-        /* Contenedores y alineación */
-        .container {
+        .main-content {
             display: flex;
             flex-direction: column;
-            align-items: center;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 2rem;
             width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .results-section {
-            grid-column: span 2;
-            text-align: center;
-            width: 100%;
+        .custom-purple-bg {
+            background-color: #2e2e2e;
+            border-radius: 10px;
+            padding: 1.5rem;
         }
 
-        /* Estilo para el área de resultados */
         #resultImage {
-            max-width: 50%; /* Tamaño reducido */
+            max-width: 50%;
             height: auto;
             border-radius: 10px;
             transition: box-shadow 0.3s ease, transform 0.2s ease;
+            border: 2px solid #ff007f;
         }
 
         #resultImage:hover {
-            box-shadow: 0 0 15px #ffffff, 0 0 30px #ffffff; /* Brillo blanco al pasar el mouse */
+            box-shadow: 0 0 15px #ff007f, 0 0 30px #ff007f;
             transform: scale(1.05);
         }
 
         /* Indicador de carga */
         #loading .spinner {
-            border-top-color: #ffffff; /* Color de la parte superior */
-            border-right-color: #e0e0e0; /* Color de la parte derecha */
+            border-top-color: #ff007f;
+            border-right-color: #e0e0e0;
         }
     </style>
 </head>
