@@ -92,6 +92,19 @@ def analyze_image():
 
     return jsonify({'image': encoded_image})
 
+@app.route('/delete/<filename>', methods=['POST'])
+def delete_image(filename):
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+            return jsonify({'success': True, 'message': 'Imagen eliminada correctamente.'})
+        except Exception as e:
+            return jsonify({'error': f'Error al eliminar la imagen: {str(e)}'}), 500
+    else:
+        return jsonify({'error': 'La imagen no existe.'}), 404
+
+
 # Ruta para servir los archivos subidos
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
