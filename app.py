@@ -1,64 +1,14 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
-from werkzeug.utils import secure_filename
-import io
-import os
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import matplotlib
-matplotlib.use('Agg')
-import base64
+import random
 
-# Crear la aplicación Flask
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
+# Función para aumentar aleatoriamente el brillo de la imagen
+def increase_brightness(image, lower=1.5, upper=2.0):
+    factor = random.uniform(lower, upper)  # Genera un factor aleatorio de brillo
+    brightened_image = cv2.convertScaleAbs(image, alpha=factor, beta=0)  # Ajusta el brillo
+    return brightened_image
 
-# Crear el directorio para subir archivos si no existe
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-
-# Cargar el clasificador de Haar para detección de rostros
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
-# Función para procesar y generar la imagen con puntos clave en el rostro
-def generate_image_with_keypoints(image_array, faces):
-    fig = plt.figure(figsize=(20, 20))
-    plt.imshow(image_array, cmap='gray')  # Mostrar la imagen subida en escala de grises
-
-    for (x, y, w, h) in faces:
-        reduced_x = x + int(w * 0.2)  # Recortar el 20% de los bordes laterales
-        reduced_y = y + int(h * 0.2)  # Recortar el 20% desde arriba (excluir cabello)
-        reduced_w = int(w * 0.6)  # Solo el 60% de la anchura central
-        reduced_h = int(h * 0.6)  # Solo el 60% de la altura (centrada en el rostro)
-
-        num_points = 15  # Número de puntos clave (ajustable)
-
-        for _ in range(num_points):
-            point_x = np.random.randint(reduced_x, reduced_x + reduced_w)
-            point_y = np.random.randint(reduced_y, reduced_y + reduced_h)
-
-            plt.plot(point_x, point_y, 'm+', markersize=15)  # Dibuja el punto en morado y más grande
-
-    # Guardar la imagen generada en memoria
-    output = io.BytesIO()
-    FigureCanvas(fig).print_png(output)
-    plt.close(fig)
-    output.seek(0)
-
-    return output
-
-# Página principal con el formulario para subir imágenes
-@app.route('/')
-def index():
-    # Obtener la lista de archivos subidos
-    images = os.listdir(app.config['UPLOAD_FOLDER'])
-    return render_template('index.html', images=images)
-
-# Ruta para subir y analizar la imagen
+# Modificar la ruta /analyze para aumentar el brillo antes de mostrar la imagen
 @app.route('/analyze', methods=['POST'])
 def analyze_image():
-    # Verificar si se subió una imagen nueva o si se seleccionó una existente
     if 'file' in request.files:
         file = request.files['file']
         if file.filename == '':
@@ -75,8 +25,11 @@ def analyze_image():
     else:
         return jsonify({'error': 'No se ha proporcionado ninguna imagen.'}), 400
 
+    # Aumentar el brillo de la imagen antes de procesarla
+    brightened_img = increase_brightness(img)
+
     # Convertir la imagen a escala de grises
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.cvtColor(brightened_img, cv2.COLOR_BGR2GRAY)
 
     # Detectar el rostro en la imagen
     faces = face_cascade.detectMultiScale(gray_img, scaleFactor=1.1, minNeighbors=5)
@@ -85,32 +38,9 @@ def analyze_image():
         return jsonify({'error': 'No se detectaron rostros en la imagen.'}), 400
 
     # Generar la imagen con puntos clave en el rostro
-    output = generate_image_with_keypoints(gray_img, faces)
+    output = generate_image_with_keypoints(brightened_img, faces)
 
     # Convertir la imagen generada a base64 para enviarla en la respuesta
     encoded_image = base64.b64encode(output.getvalue()).decode('utf-8')
 
     return jsonify({'image': encoded_image})
-
-@app.route('/delete/<filename>', methods=['POST'])
-def delete_image(filename):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    if os.path.exists(filepath):
-        try:
-            os.remove(filepath)
-            return jsonify({'success': True, 'message': 'Imagen eliminada correctamente.'})
-        except Exception as e:
-            return jsonify({'error': f'Error al eliminar la imagen: {str(e)}'}), 500
-    else:
-        return jsonify({'error': 'La imagen no existe.'}), 404
-
-
-# Ruta para servir los archivos subidos
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-# Ejecuta la aplicación Flask
-if __name__ == '__main__':
-    # Ejecuta Flask en el puerto 5000
-    app.run(port=5000)
