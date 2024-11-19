@@ -1,266 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Recognition Portal</title>
+    <title>EmotionAI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Paleta de colores */
         body {
-            font-family: 'Orbitron', sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #0d1117;
+            color: #e6edf3;
         }
 
-        h1 {
-            color: #f8f8f8;
-            font-size: 32px;
-            letter-spacing: 2px;
-            animation: glow 1s ease-in-out infinite alternate;
+        h1,
+        h2 {
+            color: #58a6ff;
         }
 
-        /* Efecto de resplandor */
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 5px #f8f8f8, 0 0 10px #f8f8f8, 0 0 20px #ff007f, 0 0 30px #ff007f;
-            }
-            to {
-                text-shadow: 0 0 10px #f8f8f8, 0 0 20px #ff007f, 0 0 30px #ff007f, 0 0 40px #ff007f;
-            }
+        .btn-custom {
+            background-color: #238636;
+            color: white;
+            border-radius: 5px;
+            padding: 12px 20px;
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
         }
 
-        .file-upload {
-            background-color: #1e1e1e;
-            border: 2px dashed #f8f8f8;
+        .btn-custom:hover {
+            background-color: #2ea043;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-container {
+            height: 20px;
+            background: #21262d;
             border-radius: 10px;
-            padding: 2rem;
-            text-align: center;
-            transition: background-color 0.3s ease;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: #58a6ff;
+            width: 0;
+            transition: width 0.5s ease-in-out;
         }
 
         .file-upload:hover {
-            background-color: #292929;
+            background-color: #30363d;
+            border-color: #58a6ff;
         }
 
-        .uploaded-image {
-            width: 100px;
-            height: 100px;
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+            border: 4px solid transparent;
+            border-top: 4px solid #58a6ff;
             border-radius: 50%;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 2px solid #ff007f;
         }
 
-        .uploaded-image:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
-        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
 
-        .btn-analyze {
-            background-color: #ff007f;
-            color: #ffffff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 5px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .btn-analyze:hover {
-            background-color: #ff4da6;
-            transform: scale(1.05);
-        }
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .custom-purple-bg {
-            background-color: #2e2e2e;
-            border-radius: 10px;
-            padding: 1.5rem;
-        }
-
-        #resultImage {
-            max-width: 50%;
-            height: auto;
-            border-radius: 10px;
-            transition: box-shadow 0.3s ease, transform 0.2s ease;
-            border: 2px solid #ff007f;
-        }
-
-        #resultImage:hover {
-            box-shadow: 0 0 15px #ff007f, 0 0 30px #ff007f;
-            transform: scale(1.05);
-        }
-
-        /* Indicador de carga */
-        #loading .spinner {
-            border-top-color: #ff007f;
-            border-right-color: #e0e0e0;
-        }
-    </style>
-</head>
-<body class="min-h-screen flex items-center justify-center">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-center mb-8">Face Recognition Portal</h1>
-    
-        <div class="main-content max-w-4xl mx-auto">
-    
-            <!-- Sección de Carga de Archivos -->
-            <div class="file-upload p-6 rounded-lg shadow-xl">
-                <h2 class="text-xl font-semibold mb-4">Upload an Image</h2>
-                <form id="uploadForm" class="space-y-4" onsubmit="return handleFormSubmit(event)">
-                    <label class="flex flex-col items-center border-dashed border-gray-600 rounded-lg cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-400 mb-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                        </svg>
-                        <p class="text-sm text-gray-400">Select an Image</p>
-                        <input type="file" class="opacity-0" name="file" accept=".jpg,.jpeg,.png" onchange="previewImage(event)" />
-                    </label>
-                    <button type="submit" class="btn-analyze w-full px-4 py-2 rounded-lg focus:outline-none">
-                        Analyze Image
-                    </button>
-                </form>
-            </div>
-            <div class="custom-purple-bg p-6 rounded-lg shadow-xl">
-                <h2 class="text-xl font-semibold mb-4">Previously Uploaded Images</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {% for image in images %}
-                    <div class="flex flex-col items-center">
-                        <img src="{{ url_for('uploaded_file', filename=image) }}" 
-                            alt="{{ image }}" 
-                            class="uploaded-image cursor-pointer"
-                            onclick="analyzeExisting('{{ image }}')">
-                        <button class="btn-analyze mt-2" onclick="confirmDelete('{{ image }}')">Eliminar</button>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Sección de Resultados -->
-            <div id="results" class="results-section hidden mt-8">
-                <h2 class="text-2xl font-semibold mb-4">Analysis Results</h2>
-                <div class="border border-gray-700 rounded-lg p-4 bg-gray-800 relative flex flex-col items-center">
-                    <img id="resultImage" src="" alt="Analysis Result" class="max-w-full h-auto mb-4" style="display: none;">
-                    
-                    <div id="loading" class="hidden absolute flex items-center justify-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                        <div class="spinner animate-spin rounded-full h-16 w-16 border-b-2"></div>
-                    </div>
-                    
-                    <div id="error" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 bg-red-900 border border-red-700 text-red-200 rounded-lg text-lg z-10">
-                        <!-- Mensaje de error -->
-                    </div>
-                </div>
-            </div>
-       
-    <script>
-        // AJAX para analizar imagen subida
-        $('#uploadForm').submit(function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            showLoading();
-
-            $.ajax({
-                url: '/analyze',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function (response) {
-                    hideLoading();
-                    $('#results').removeClass('hidden');
-                    $('#resultImage').attr('src', 'data:image/png;base64,' + response.image);
-                },
-                error: function (xhr) {
-                    hideLoading();
-                    $('#error')
-                        .removeClass('hidden')
-                        .text(xhr.responseJSON?.error || 'An error occurred');
-                }
-            });
-        });
-
-        function analyzeExisting(filename) {
-            showLoading();
-            const formData = new FormData();
-            formData.append('existing_file', filename);
-
-            $.ajax({
-                url: '/analyze',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function (response) {
-                    hideLoading();
-                    $('#results').removeClass('hidden');
-                    $('#resultImage').attr('src', 'data:image/png;base64,' + response.image); // Cambia esto según la respuesta del servidor
-                    $('#resultImage').css('display', 'block'); // Muestra la imagen
-                },
-                error: function (xhr) {
-                    hideLoading();
-                    $('#error')
-                        .removeClass('hidden')
-                        .text(xhr.responseJSON?.error || 'An error occurred');
-                }
-            });
-            console.log("Analizando imagen:", filename);
-        }
-
-        // Mostrar/Ocultar el indicador de carga
-        function showLoading() {
-            $('#loading').removeClass('hidden');
-        }
-
-        function hideLoading() {
-            $('#loading').addClass('hidden');
-        }
-
-        function confirmDelete(image) {
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: "No podrás recuperar esta imagen!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    deleteImage(image);
-                }
-            });
-        }
-
-        function deleteImage(image) {
-    $.ajax({
-        url: '/delete/' + image, // URL correcta para la solicitud
-        type: 'POST', // Método POST
-        success: function () {
-            Swal.fire('Eliminado!', 'Tu imagen ha sido eliminada.', 'success');
-            location.reload(); // Recargar la página para actualizar la lista de imágenes
-        },
-        error: function (xhr) {
-            Swal.fire('Error!', 'No se pudo eliminar la imagen.', 'error');
-        }
-    });
-}
-
-        function previewImage(event) {
-            const imageFile = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                $('#resultImage').attr('src', e.target.result).css('display', 'block'); // Muestra la imagen de vista previa
-            };
-            reader.readAsDataURL(imageFile);
-        }
-    </script>
-</body>
-</html>
+            100% {
+   
