@@ -1,233 +1,33 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmotionAI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Árbol de Decisión</title>
     <style>
-        /* Custom Styles for Vibrant Theme */
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f4f8; /* Fondo claro */
-            color: #1a202c; /* Texto oscuro */
-            animation: fadeIn 1s ease-in-out;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
         }
-
-        h1,
-        h2 {
-            color: #ff6f61; /* Encabezados vibrantes */
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
         }
-
-        .bg-custom {
-            background-color: #ffffff; /* Fondo de secciones */
-        }
-
-        .btn-custom {
-            background-color: #4caf50; /* Botón verde */
-            color: white;
-            border-radius: 5px;
-            padding: 12px 20px;
-            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
-        }
-
-        .btn-custom:hover {
-            background-color: #388e3c;
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .progress-container {
-            height: 20px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress {
-            height: 100%;
-            background: #3f51b5; /* Azul progresivo */
-            width: 0;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .border-custom {
-            border-color: #cfd8dc; /* Bordes suaves */
-        }
-
-        .title-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease-in-out;
-            animation: slideIn 1s ease-out;
-        }
-
-        .title-container:hover {
-            transform: scale(1.03);
-        }
-
-        .file-upload:hover {
-            background-color: #e3f2fd; /* Fondo azul claro */
-            border-color: #42a5f5; /* Borde azul */
-        }
-
-        .loading-spinner {
-            animation: spin 1s linear infinite;
-            border: 4px solid transparent;
-            border-top: 4px solid #42a5f5; /* Azul */
-            border-radius: 50%;
-        }
-
-        .fade-up {
-            animation: fadeUp 1.5s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(50px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
-
-<body class="bg-custom min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Title Container -->
-        <div class="title-container text-center animate-fade">
-            <h1 class="text-5xl font-extrabold">EmotionAI</h1>
-        </div>
-
-        <div class="max-w-3xl mx-auto bg-custom rounded-lg shadow-2xl p-8 animate-fade">
-            <div class="flex flex-col md:flex-row">
-                <!-- File Upload Section -->
-                <div class="md:w-1/2 mb-8 pr-6">
-                    <h2 class="text-2xl font-semibold mb-6">Sube tu imagen para analizar emociones</h2>
-                    <form id="uploadForm" class="space-y-6">
-                        <div class="flex items-center justify-center w-full">
-                            <label class="flex flex-col w-full h-40 border-4 border-dashed border-gray-400 file-upload">
-                                <div class="flex flex-col items-center justify-center pt-7">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-gray-500 group-hover:text-gray-700" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                                    </svg>
-                                    <p class="pt-2 text-lg tracking-wider text-gray-500 group-hover:text-gray-700">
-                                        Arrastra o selecciona una imagen</p>
-                                </div>
-                                <input type="file" class="opacity-0" name="file" accept=".jpg,.jpeg,.png" />
-                            </label>
-                        </div>
-                        <button type="submit" class="btn-custom w-full transition-all duration-300">
-                            Analizar Emoción
-                        </button>
-                    </form>
-
-                    <!-- Progress Bar Section -->
-                    <div id="progressSection" class="hidden mt-6">
-                        <h2 class="text-xl font-semibold mb-4">Progreso del Análisis</h2>
-                        <div class="progress-container">
-                            <div id="progress" class="progress"></div>
-                        </div>
-                    </div>
-
-                    <!-- Loading Indicator -->
-                    <div id="loading" class="hidden mt-6">
-                        <div class="flex items-center justify-center">
-                            <div class="loading-spinner h-14 w-14"></div>
-                        </div>
-                    </div>
-
-                    <!-- Error Display -->
-                    <div id="error" class="hidden mt-6 p-6 bg-red-200 border border-red-500 text-red-800 rounded-lg">
-                    </div>
-                </div>
-
-                <!-- Results Section -->
-                <div class="md:w-1/2 mb-8 pl-6">
-                    <h2 class="text-2xl font-semibold mb-6">Resultados de la Detección</h2>
-                    <div id="results" class="hidden fade-up">
-                        <div class="border-custom border rounded-lg p-6">
-                            <img id="resultImage" class="max-w-full h-auto mx-auto" src="" alt="Resultado del Análisis">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body>
+    <div class="container">
+        <h1>Resultados del Modelo</h1>
+        <p>Árbol de decisión entrenado y su límite de decisión</p>
+        <img src="/static/decision_tree.png" alt="Árbol de Decisión">
+        <img src="/static/decision_boundary.png" alt="Límite de Decisión">
     </div>
-
-    <script>
-        $(document).ready(function () {
-            $('#uploadForm').on('submit', function (e) {
-                e.preventDefault();
-
-                var formData = new FormData(this);
-                $('#loading').removeClass('hidden');
-                $('#progressSection').removeClass('hidden');
-                $('#progress').css('width', '0%');
-
-                $.ajax({
-                    url: '/analyze',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    xhr: function () {
-                        var xhr = new window.XMLHttpRequest();
-                        xhr.upload.addEventListener("progress", function (evt) {
-                            if (evt.lengthComputable) {
-                                var percentComplete = (evt.loaded / evt.total) * 100;
-                                $('#progress').css('width', percentComplete + '%');
-                            }
-                        }, false);
-                        return xhr;
-                    },
-                    success: function (response) {
-                        $('#loading').addClass('hidden');
-                        $('#results').removeClass('hidden');
-                        $('#resultImage').attr('src', 'data:image/png;base64,' + response.image);
-                        $('#progress').css('width', '100%');
-                    },
-                    error: function (xhr) {
-                        $('#loading').addClass('hidden');
-                        $('#error').removeClass('hidden').text(xhr.responseJSON?.error || 'Ocurrió un error');
-                    }
-                });
-            });
-        });
-    </script>
 </body>
-
 </html>
+
