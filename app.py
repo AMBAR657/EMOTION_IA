@@ -1,152 +1,79 @@
+from flask import Flask, render_template, send_from_directory
 import os
-from flask import Flask, render_template, request, jsonify, send_from_directory
-import cv2
-import mediapipe as mp
-import matplotlib
-matplotlib.use('Agg')  # Set backend before importing pyplot
-import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
-import base64
-from io import BytesIO
-from werkzeug.utils import secure_filename
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 
+# Crear la aplicación Flask
 app = Flask(__name__)
 
-# Configure upload folder
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
-# Ensure upload directory exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def analyze_face(image_path):
-    try:
-        # Initialize MediaPipe Face Mesh
-        mp_face_mesh = mp.solutions.face_mesh
-        face_mesh = mp_face_mesh.FaceMesh(
-            static_image_mode=True,
-            max_num_faces=1,
-            min_detection_confidence=0.5
-        )
-
-        # Read image
-        image = cv2.imread(image_path)
-        if image is None:
-            raise Exception("Could not load image")
-
-        # Convert to RGB for MediaPipe
-        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        # Detect facial landmarks
-        results = face_mesh.process(rgb_image)
-
-        if not results.multi_face_landmarks:
-            raise Exception("No face detected in the image")
-
-        # Select 12 main keypoints
-        key_points = [33, 133, 362, 263, 1, 61, 291, 199, 94, 0, 24, 130]
-        height, width = gray_image.shape
-
-        # Prepare transformations
-        transformations = [
-            ("Original", gray_image),
-            ("Horizontally Flipped", cv2.flip(gray_image, 1)),
-            ("Brightened", cv2.convertScaleAbs(gray_image, alpha=1.2, beta=50)),
-            ("Upside Down", cv2.flip(gray_image, 0))
-        ]
-
-        # Initialize figure
-        fig, axes = plt.subplots(2, 2, figsize=(12, 12))
-        axes = axes.flatten()
-
-        for ax, (title, img) in zip(axes, transformations):
-            ax.imshow(img, cmap='gray')
-            for point_idx in key_points:
-                landmark = results.multi_face_landmarks[0].landmark[point_idx]
-                x = int(landmark.x * width)
-                y = int(landmark.y * height)
-                # Adjust keypoints for transformations
-                if title == "Horizontally Flipped":
-                    x = width - x
-                elif title == "Upside Down":
-                    y = height - y
-                ax.plot(x, y, 'rx')
-            ax.set_title(title)
-            ax.axis('off')
-
-        # Save plot to memory
-        buf = BytesIO()
-        plt.tight_layout()
-        plt.savefig(buf, format='png', bbox_inches='tight')
-        buf.seek(0)
-        plt.close(fig)
-
-        # Convert to base64
-        image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-        return image_base64
-
-    except Exception as e:
-        print(f"Error in analyze_face: {str(e)}")
-        raise
-    finally:
-        plt.close('all')
-
+# Ruta para la página principal
 @app.route('/')
 def home():
-    # Get list of images in upload folder
-    images = []
-    for filename in os.listdir(app.config['UPLOAD_FOLDER']):
-        if allowed_file(filename):
-            images.append(filename)
-    return render_template('index.html', images=images)
+    return render_template('index.html')
 
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    try:
-        # Check if we're analyzing an existing file
-        if 'existing_file' in request.form:
-            filename = request.form['existing_file']
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            if not os.path.exists(filepath):
-                return jsonify({'error': f'File not found: {filename}'}), 404
-            
-        # Check if we're uploading a new file
-        elif 'file' in request.files:
-            file = request.files['file']
-            if file.filename == '':
-                return jsonify({'error': 'No file selected'}), 400
-            
-            if not allowed_file(file.filename):
-                return jsonify({'error': 'File type not allowed'}), 400
-            
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-        
-        else:
-            return jsonify({'error': 'No file provided'}), 400
+# Ruta para los gráficos
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename)
 
-        # Analyze the image
-        result_image = analyze_face(filepath)
-        
-        return jsonify({
-            'success': True,
-            'image': result_image
-        })
+# Generar el modelo y gráficos al iniciar
+def generate_model_and_graphs():
+    # Crear el DataSet
+    data = {
+        "Feature1": np.random.rand(100),
+        "Feature2": np.random.rand(100),
+        "Feature3": np.random.rand(100),
+        "Output": np.random.choice(["Class1", "Class2"], size=100),
+    }
+    df = pd.DataFrame(data)
 
-    except Exception as e:
-        print(f"Error in /analyze: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    # Transformar la variable de salida a numérica
+    df["Output"] = df["Output"].map({"Class1": 0, "Class2": 1})
 
-@app.route('/static/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    # Dividir el DataSet
+    X = df[["Feature1", "Feature2", "Feature3"]]
+    y = df["Output"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Reducir el número de atributos
+    X_reduced = X[["Feature1", "Feature2"]]
+    X_train_red, X_test_red, y_train_red, y_test_red = train_test_split(
+        X_reduced, y, test_size=0.3, random_state=42
+    )
+
+    # Entrenar el modelo
+    model = DecisionTreeClassifier(random_state=42)
+    model.fit(X_train_red, y_train_red)
+
+    # Graficar el árbol de decisión
+    plt.figure(figsize=(10, 6))
+    plot_tree(model, feature_names=X_reduced.columns, class_names=["Class1", "Class2"], filled=True)
+    tree_path = os.path.join('static', 'decision_tree.png')
+    plt.savefig(tree_path)
+    plt.close()
+
+    # Graficar el límite de decisión
+    x_min, x_max = X_train_red["Feature1"].min() - 1, X_train_red["Feature1"].max() + 1
+    y_min, y_max = X_train_red["Feature2"].min() - 1, X_train_red["Feature2"].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01), np.arange(y_min, y_max, 0.01))
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha=0.8, cmap=plt.cm.Paired)
+    plt.scatter(X_train_red["Feature1"], X_train_red["Feature2"], c=y_train_red, edgecolor="k", cmap=plt.cm.Paired)
+    plt.title("Límite de decisión")
+    plt.xlabel("Feature1")
+    plt.ylabel("Feature2")
+    boundary_path = os.path.join('static', 'decision_boundary.png')
+    plt.savefig(boundary_path)
+    plt.close()
+
+# Generar gráficos al iniciar la aplicación
+generate_model_and_graphs()
 
 if __name__ == '__main__':
     app.run(debug=True)
