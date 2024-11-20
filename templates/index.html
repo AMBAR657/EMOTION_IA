@@ -1,33 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Árbol de Decisión</title>
+    <title>Resultados del Modelo Random Forest</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+            color: #333;
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 800px;
-            margin: 50px auto;
+            width: 90%;
+            max-width: 900px;
+            background-color: #f9f9f9;
+            color: #4d4d4d;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in-out;
         }
-        img {
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #3a3a3a;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #6a11cb;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 22px;
+            color: #333;
+            margin: 30px 0 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #ffffff;
+            margin: 8px 0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        li span {
+            font-weight: normal;
+            color: #6b7280;
+        }
+        .img-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .img-container img {
             max-width: 100%;
-            height: auto;
+            border-radius: 10px;
+            margin: 10px 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .img-container img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #9ca3af;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Resultados del Modelo</h1>
-        <p>Árbol de decisión entrenado y su límite de decisión</p>
-        <img src="/static/decision_tree.png" alt="Árbol de Decisión">
-        <img src="/static/decision_boundary.png" alt="Límite de Decisión">
+        <h1>Resultados del Modelo de Regresión de Random Forest</h1>
+
+        <h2>Métricas Generadas por el Algoritmo</h2>
+        <ul>
+            <li>MSE (Entrenamiento): <span>{{ metrics.mse_train }}</span></li>
+            <li>MSE (Validación): <span>{{ metrics.mse_val }}</span></li>
+            <li>MSE (Test): <span>{{ metrics.mse_test }}</span></li>
+            <li>MAE (Entrenamiento): <span>{{ metrics.mae_train }}</span></li>
+            <li>MAE (Validación): <span>{{ metrics.mae_val }}</span></li>
+            <li>MAE (Test): <span>{{ metrics.mae_test }}</span></li>
+            <li>R² (Entrenamiento): <span>{{ metrics.r2_train }}</span></li>
+            <li>R² (Validación): <span>{{ metrics.r2_val }}</span></li>
+            <li>R² (Test): <span>{{ metrics.r2_test }}</span></li>
+        </ul>
+
+        <h2>Gráficas</h2>
+        <div class="img-container">
+            <img src="data:image/png;base64,{{ plot }}" alt="Gráfica Real vs Predicción">
+            <img src="/static/results/arbol_decision.png" alt="Árbol de Decisión">
+            <img src="/static/results/graf.png" alt="Gráfica Límites de Decisión">
+        </div>
+
+        <footer>
+            <p>Desarrollado con ❤️ por Jonathan Hernández</p>
+        </footer>
     </div>
 </body>
 </html>
-
